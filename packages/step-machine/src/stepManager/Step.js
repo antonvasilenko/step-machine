@@ -1,5 +1,9 @@
 // Later create StepOptions with build() and validate();
 
+const EXIT_CODES = {
+  WAIT: 'wait',
+};
+
 const hasOptions = options => !!options;
 
 const hasEntries = options => options.entryPoints && Object.keys(options.entryPoints).length > 0;
@@ -15,6 +19,16 @@ const validCallbacks = options =>
   );
 
 const isBreakable = options => options.breakable === true;
+
+const hasExitCodes = options => options.exitCodes && options.exitCodes.length > 0;
+const validExitCodes = options => options.exitCodes.every(ec => typeof ec === 'string');
+const validWaitExitCode = options => {
+  if (isBreakable(options)) {
+    return options.exitCodes.includes(EXIT_CODES.WAIT);
+  }
+  return !options.exitCodes.includes(EXIT_CODES.WAIT);
+}
+
 
 const validateOptions = options => {
   if (!hasOptions(options)) {
@@ -34,6 +48,15 @@ const validateOptions = options => {
       throw new Error('breakable should be enabled if callbacks defined');
     }
   }
+  if (!hasExitCodes(options)) {
+    throw new Error('At least one custom exit code should be defined');
+  }
+  if (!validExitCodes(options)) {
+    throw new Error('invalid exit codes, should be strings');
+  }
+  if (!validWaitExitCode(options)) {
+    throw new Error('Breakable steps should have "wait" exit code, unbreakable - should not.');
+  }
 };
 
 class Step {
@@ -45,7 +68,10 @@ class Step {
     validateOptions(options);
     this.entryPoints = options.entryPoints;
     this.callbacks = options.callbacks;
+    this.exitCodes = options.exitCodes;
   }
 }
+
+Step.EXIT_CODES = EXIT_CODES;
 
 module.exports = Step;
