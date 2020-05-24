@@ -27,8 +27,16 @@ const validWaitExitCode = options => {
     return options.exitCodes.includes(EXIT_CODES.WAIT);
   }
   return !options.exitCodes.includes(EXIT_CODES.WAIT);
-}
+};
 
+const validateName = name => {
+  if (!name) {
+    throw new Error('Step should always have a name');
+  }
+  if (!/^[a-z_]+$/.test(name)) {
+    throw new Error('Invalid name, should be only lower case letters and underscore');
+  }
+};
 
 const validateOptions = options => {
   if (!hasOptions(options)) {
@@ -59,16 +67,38 @@ const validateOptions = options => {
   }
 };
 
+const normalizeEnumValue = (key) => `${key.replace(' ', '_')}`;
+const normalizeKey = (name, key) => `${name}::${key.replace(' ', '_')}`;
+
 class Step {
   constructor(name, options) {
-    if (!name) {
-      throw new Error('Step should always have a name');
-    }
+    validateName(name);
     this.name = name;
     validateOptions(options);
     this.entryPoints = options.entryPoints;
     this.callbacks = options.callbacks;
     this.exitCodes = options.exitCodes;
+    this.ExicCode = Object.freeze(
+      this.exitCodes.reduce((acc, code) => {
+        const key = normalizeEnumValue(code);
+        acc[key] = normalizeKey(this.name, code);
+        return acc;
+      }, {}),
+    );
+    this.EntryPoint = Object.freeze(
+      Object.keys(this.entryPoints).reduce((acc, pointName) => {
+        const key = normalizeEnumValue(pointName);
+        acc[key] = normalizeKey(this.name, pointName);
+        return acc;
+      }, {}),
+    );
+    this.Callback = Object.freeze(
+      Object.keys(this.callbacks).reduce((acc, callbackName) => {
+        const key = normalizeEnumValue(callbackName);
+        acc[key] = normalizeKey(this.name, pointName);
+        return acc;
+      }, {}),
+    );
   }
 }
 
