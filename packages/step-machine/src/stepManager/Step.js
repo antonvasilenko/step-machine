@@ -1,5 +1,6 @@
 // Later create StepOptions with build() and validate();
 
+// eslint-disable-next-line max-classes-per-file
 const EXIT_CODES = {
   WAIT: 'wait',
 };
@@ -70,13 +71,47 @@ const validateOptions = (options) => {
 const normalizeEnumValue = (key) => `${key.replace(' ', '_')}`;
 const normalizeKey = (name, key) => `${name}::${key.replace(' ', '_')}`;
 
+class EntryPoint {
+  constructor(step, name, entryFn) {
+    this.step = step;
+    this.name = name;
+    this.fn = entryFn;
+  }
+
+  invoke(ctx) {
+    return this.fn(ctx);
+  }
+}
+
+class Callback {
+  constructor(step, name, callbackFn) {
+    this.step = step;
+    this.name = name;
+    this.fn = callbackFn;
+  }
+
+  invoke(ctx) {
+    return this.fn(ctx);
+  }
+}
+
 class Step {
   constructor(name, options) {
     validateName(name);
     this.name = name;
     validateOptions(options);
-    this.entryPoints = options.entryPoints;
-    this.callbacks = options.callbacks || {};
+    this.entryPoints = Object.freeze(
+      Object.entries(options.entryPoints).reduce((acc, [key, fn]) => {
+        acc[key] = new EntryPoint(this, key, fn);
+        return acc;
+      }, {}),
+    );
+    this.callbacks = Object.freeze(
+      Object.entries(options.callbacks || {}).reduce((acc, [key, fn]) => {
+        acc[key] = new Callback(this, key, fn);
+        return acc;
+      }, {}),
+    );
     this.exitCodes = options.exitCodes || [];
     this.ExitCode = Object.freeze(
       this.exitCodes.reduce((acc, code) => {
@@ -85,23 +120,11 @@ class Step {
         return acc;
       }, {}),
     );
-    this.EntryPoint = Object.freeze(
-      Object.keys(this.entryPoints).reduce((acc, pointName) => {
-        const key = normalizeEnumValue(pointName);
-        acc[key] = normalizeKey(this.name, pointName);
-        return acc;
-      }, {}),
-    );
-    this.Callback = Object.freeze(
-      Object.keys(this.callbacks).reduce((acc, callbackName) => {
-        const key = normalizeEnumValue(callbackName);
-        acc[key] = normalizeKey(this.name, callbackName);
-        return acc;
-      }, {}),
-    );
   }
 }
 
 Step.EXIT_CODES = EXIT_CODES;
+Step.Callback = Callback;
+Step.EntryPoint = EntryPoint;
 
 module.exports = Step;

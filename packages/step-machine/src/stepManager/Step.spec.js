@@ -65,7 +65,7 @@ describe('Step', () => {
 
     it('holds provided callbacks', () => {
       const step = new Step('br', breakableOpts);
-      expect(step.callbacks).toHaveProperty('onUserSubmit', expect.any(Function));
+      expect(step.callbacks.onUserSubmit).toBeInstanceOf(Step.Callback);
     });
   });
 });

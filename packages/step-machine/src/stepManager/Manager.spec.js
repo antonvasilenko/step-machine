@@ -36,7 +36,7 @@ describe('Manager', () => {
           [step1.ExitCode.ok]: {
             to: 'step_one_done',
             // TODO maybe box it in wrapper object with name and reference to the step
-            next: [step2, step2.EntryPoint.start], // a.k.a. after
+            next: step2.entryPoints.start, // a.k.a. after
           },
         },
         initial: true,
@@ -56,9 +56,9 @@ describe('Manager', () => {
     expect(stepManager).toBeInstanceOf(Manager);
   });
 
-  it('machine with breakable step simple sync step created', () => {
+  it('machine with breakable step created', () => {
     // simple step definition
-    // begin -> start step1 ok -> start step2 ok -> end
+    // begin -> start step1 ok -> start step2 wait |...| onUserSubmit  ok -> end
     const step1 = new Step('step_one', {
       entryPoints: {
         start: async (digi) => {
@@ -96,22 +96,13 @@ describe('Manager', () => {
           [step1.ExitCode.ok]: {
             to: 'step_one_done',
             // TODO maybe box it in wrapper object with name and reference to the step
-            next: [step2, step2.EntryPoint.start], // a.k.a. after
+            next: step2.entryPoints.start, // a.k.a. after
           },
         },
         initial: true,
       },
       step_one_done: {
-        onExit: {
-          [step2.ExitCode.ok]: {
-            to: 'completed',
-          },
-        },
-      },
-      step_two_done: {
-        onCallback: {
-          [step3.Callback.onUserSubmit]: [step3, step3.callbacks.onUserSubmit],
-        },
+        onCallback: [step2.callbacks.onUserSubmit],
         onExit: {
           [step2.ExitCode.ok]: {
             to: 'completed',
@@ -122,7 +113,7 @@ describe('Manager', () => {
         final: true,
       },
     };
-    const stepManager = new Manager(states, [step1, step2, step3]);
+    const stepManager = new Manager(states, [step1, step2]);
     expect(stepManager).toBeInstanceOf(Manager);
   });
 });
