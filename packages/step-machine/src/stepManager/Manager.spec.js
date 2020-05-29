@@ -3,7 +3,7 @@ const Manager = require('./Manager');
 const Step = require('./Step');
 
 describe('Manager', () => {
-  it('setup simple 3 step machine does NOT fail', () => {
+  it('machine with 2 simple sync step created', () => {
     // simple step definition
     // begin -> start step1 ok -> start step2 ok -> end
     const step1 = new Step('step_one', {
@@ -18,7 +18,6 @@ describe('Manager', () => {
       breakable: false,
       exitCodes: ['ok'],
     });
-    console.log(step1);
     const step2 = new Step('step_two', {
       entryPoints: {
         start: async (digi) => {
@@ -31,12 +30,53 @@ describe('Manager', () => {
       breakable: false,
       exitCodes: ['ok'],
     });
-    const step3 = new Step('step_three', {
+    const states = {
+      new: {
+        onExit: {
+          [step1.ExitCode.ok]: {
+            to: 'step_one_done',
+            // TODO maybe box it in wrapper object with name and reference to the step
+            next: [step2, step2.EntryPoint.start], // a.k.a. after
+          },
+        },
+        initial: true,
+      },
+      step_one_done: {
+        onExit: {
+          [step2.ExitCode.ok]: {
+            to: 'completed',
+          },
+        },
+      },
+      completed: {
+        final: true,
+      },
+    };
+    const stepManager = new Manager(states, [step1, step2]);
+    expect(stepManager).toBeInstanceOf(Manager);
+  });
+
+  it('machine with breakable step simple sync step created', () => {
+    // simple step definition
+    // begin -> start step1 ok -> start step2 ok -> end
+    const step1 = new Step('step_one', {
       entryPoints: {
         start: async (digi) => {
-          console.log('Starting step3');
-          console.log('Doing step3 job');
-          console.log('Breaking step3 untill user submits the form');
+          console.log('Starting step1');
+          console.log('Doing step1 job');
+          console.log('Exiting step1 with success');
+          return [digi, 'ok'];
+        },
+      },
+      breakable: false,
+      exitCodes: ['ok'],
+    });
+    const step2 = new Step('step_two', {
+      entryPoints: {
+        start: async (digi) => {
+          console.log('Step2: Starting');
+          console.log('Step2: Doing job');
+          console.log('Step2: Breaking until user submits the form');
           return [digi, 'wait']; // ctx.exit('wait', updatedDigi);
         },
       },
