@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
+    "test:watch": "npm run test -- --watch",
     "pretest": "npm run lint",
-    "lint": "eslint --color \"src/**/*.js\"",
-    "test:watch": "npm run test -- --watchAll"
+    "lint": "eslint --color \"src/**/*.js\""
   },
   "author": "",
   "license": "ISC",

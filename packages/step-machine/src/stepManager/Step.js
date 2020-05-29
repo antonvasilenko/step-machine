@@ -76,9 +76,9 @@ class Step {
     this.name = name;
     validateOptions(options);
     this.entryPoints = options.entryPoints;
-    this.callbacks = options.callbacks;
-    this.exitCodes = options.exitCodes;
-    this.ExicCode = Object.freeze(
+    this.callbacks = options.callbacks || {};
+    this.exitCodes = options.exitCodes || [];
+    this.ExitCode = Object.freeze(
       this.exitCodes.reduce((acc, code) => {
         const key = normalizeEnumValue(code);
         acc[key] = normalizeKey(this.name, code);

@@ -3,7 +3,7 @@ const Manager = require('./Manager');
 const Step = require('./Step');
 
 describe('Manager', () => {
-  it('setup simple 2 step machine does NOT fail', () => {
+  it('setup simple 3 step machine does NOT fail', () => {
     // simple step definition
     // begin -> start step1 ok -> start step2 ok -> end
     const step1 = new Step('step_one', {
@@ -18,6 +18,7 @@ describe('Manager', () => {
       breakable: false,
       exitCodes: ['ok'],
     });
+    console.log(step1);
     const step2 = new Step('step_two', {
       entryPoints: {
         start: async (digi) => {
@@ -52,7 +53,7 @@ describe('Manager', () => {
     const states = {
       new: {
         onExit: {
-          [step1.exitCode.ok]: {
+          [step1.ExitCode.ok]: {
             to: 'step_one_done',
             // TODO maybe box it in wrapper object with name and reference to the step
             next: [step2, step2.EntryPoint.start], // a.k.a. after
@@ -62,7 +63,7 @@ describe('Manager', () => {
       },
       step_one_done: {
         onExit: {
-          [step2.ExicCode.ok]: {
+          [step2.ExitCode.ok]: {
             to: 'completed',
           },
         },
@@ -72,7 +73,7 @@ describe('Manager', () => {
           [step3.Callback.onUserSubmit]: [step3, step3.callbacks.onUserSubmit],
         },
         onExit: {
-          [step2.ExicCode.ok]: {
+          [step2.ExitCode.ok]: {
             to: 'completed',
           },
         },
