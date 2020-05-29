@@ -1,7 +1,6 @@
-// const Manager = require('./Manager');
+/* eslint-disable no-console */
+const Manager = require('./Manager');
 const Step = require('./Step');
-
-
 
 describe('Manager', () => {
   it('setup simple 2 step machine does NOT fail', () => {
@@ -17,7 +16,7 @@ describe('Manager', () => {
         },
       },
       breakable: false,
-      exitCodes: ['ok']
+      exitCodes: ['ok'],
     });
     const step2 = new Step('step_two', {
       entryPoints: {
@@ -29,40 +28,60 @@ describe('Manager', () => {
         },
       },
       breakable: false,
-      exitCodes: ['ok']
+      exitCodes: ['ok'],
+    });
+    const step3 = new Step('step_three', {
+      entryPoints: {
+        start: async (digi) => {
+          console.log('Starting step3');
+          console.log('Doing step3 job');
+          console.log('Breaking step3 untill user submits the form');
+          return [digi, 'wait']; // ctx.exit('wait', updatedDigi);
+        },
+      },
+      callbacks: {
+        onUserSubmit: (digi, payload) => {
+          console.log('Step3: Got some paylad back from user for');
+          console.log('Step3: Processing user payload', payload);
+          return [digi, 'ok']; // ctx.exit('ok', updatedDigi);
+        },
+      },
+      breakable: true,
+      exitCodes: ['ok', 'wait'],
     });
     const states = {
-      'new': {
+      new: {
         onExit: {
           [step1.exitCode.ok]: {
             to: 'step_one_done',
             // TODO maybe box it in wrapper object with name and reference to the step
-            next: [ step2, step2.EntryPoint.start] // a.k.a. after
+            next: [step2, step2.EntryPoint.start], // a.k.a. after
           },
         },
         initial: true,
       },
-      'step_one_done': {
+      step_one_done: {
         onExit: {
           [step2.ExicCode.ok]: {
             to: 'completed',
-          }
+          },
         },
       },
-      'step_two_done': {
+      step_two_done: {
         onCallback: {
           [step3.Callback.onUserSubmit]: [step3, step3.callbacks.onUserSubmit],
-        },  
+        },
         onExit: {
           [step2.ExicCode.ok]: {
             to: 'completed',
-          }
+          },
         },
       },
-      'completed': {
+      completed: {
         final: true,
-      }
-    }
-    const stepManager = new stepManager(states, steps);
+      },
+    };
+    const stepManager = new Manager(states, [step1, step2, step3]);
+    expect(stepManager).toBeInstanceOf(Manager);
   });
 });

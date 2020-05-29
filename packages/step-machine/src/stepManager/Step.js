@@ -4,32 +4,32 @@ const EXIT_CODES = {
   WAIT: 'wait',
 };
 
-const hasOptions = options => !!options;
+const hasOptions = (options) => !!options;
 
-const hasEntries = options => options.entryPoints && Object.keys(options.entryPoints).length > 0;
-const validEntries = options =>
+const hasEntries = (options) => options.entryPoints && Object.keys(options.entryPoints).length > 0;
+const validEntries = (options) =>
   Object.entries(options.entryPoints).every(
     ([key, func]) => key && func && typeof func === 'function',
   );
 
-const hasCallbacks = options => options.callbacks && Object.keys(options.callbacks).length > 0;
-const validCallbacks = options =>
+const hasCallbacks = (options) => options.callbacks && Object.keys(options.callbacks).length > 0;
+const validCallbacks = (options) =>
   Object.entries(options.callbacks).every(
     ([key, func]) => key && func && typeof func === 'function',
   );
 
-const isBreakable = options => options.breakable === true;
+const isBreakable = (options) => options.breakable === true;
 
-const hasExitCodes = options => options.exitCodes && options.exitCodes.length > 0;
-const validExitCodes = options => options.exitCodes.every(ec => typeof ec === 'string');
-const validWaitExitCode = options => {
+const hasExitCodes = (options) => options.exitCodes && options.exitCodes.length > 0;
+const validExitCodes = (options) => options.exitCodes.every((ec) => typeof ec === 'string');
+const validWaitExitCode = (options) => {
   if (isBreakable(options)) {
     return options.exitCodes.includes(EXIT_CODES.WAIT);
   }
   return !options.exitCodes.includes(EXIT_CODES.WAIT);
 };
 
-const validateName = name => {
+const validateName = (name) => {
   if (!name) {
     throw new Error('Step should always have a name');
   }
@@ -38,7 +38,7 @@ const validateName = name => {
   }
 };
 
-const validateOptions = options => {
+const validateOptions = (options) => {
   if (!hasOptions(options)) {
     throw new Error('Options are mandatory');
   }

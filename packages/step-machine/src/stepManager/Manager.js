@@ -1,8 +1,17 @@
 class Manager {
-  constructor(states, steps, options = {
-    getState = (value) => value.state,
-    setState = async (value, state) => (value.state = state),
-  }) {
+  constructor(
+    states,
+    steps,
+    options = {
+      getState: (value) => value.state,
+      setState: async (value, state) => {
+        // eslint-disable-next-line no-param-reassign
+        value.state = state;
+      },
+      // eslint-disable-next-line no-console
+      log: console.log,
+    },
+  ) {
     // TODO validate inputs
     this.states = Object.freeze(states);
     this.steps = Object.freeze(steps);
@@ -11,7 +20,11 @@ class Manager {
     this.callback = this.callback.bind(this);
   }
 
-  _resolveCallback (state, callbackName) {
+  log(...args) {
+    this.options.log(...args);
+  }
+
+  intResolveCallback(state, callbackName) {
     const stateDefinition = this.states[state];
     if (!stateDefinition) {
       throw new Error(`Cound not find a definition for state ${state}`);
@@ -19,7 +32,9 @@ class Manager {
 
     const callbackDefinition = stateDefinition.onCallback[callbackName];
     if (!callbackDefinition) {
-      throw new Error(`Could not find the definition of callback ${callbackName} for state ${state}`);
+      throw new Error(
+        `Could not find the definition of callback ${callbackName} for state ${state}`,
+      );
     }
 
     const [step, stepCallbackName = callbackName] = callbackDefinition;
@@ -32,21 +47,22 @@ class Manager {
    * Use to handle callback - continuation of a step that waits for an external process completion.
    * TODO:
    * 1. use StateObject to wrap digi and make Manager entity agnostic
-  */
+   */
   callback(stateObject, callbackName, payload) {
     const currentObjectState = this.options.getState(stateObject);
-    const callbackFn = this._resolveCallback(currentObjectState, callbackName);
+    const callbackFn = this.intResolveCallback(currentObjectState, callbackName);
 
-    return callbackFn(stateObject, payload)
-      .then(([updatedStateObject, exitCode])=> this.next(updatedStateObject, exitCode));
-      // .then(() => {
-      //   console.log(`Changing digi ${digi._id} state: ${digi.state} => ${transition.to}`);
-      //   return digi.setState(transition.to);
-      // })
-      // .then(() => (transition.after ? transition.after(digi, stateManager) : digi));
+    return callbackFn(stateObject, payload).then(([updatedStateObject, exitCode]) =>
+      this.next(updatedStateObject, exitCode),
+    );
+    // .then(() => {
+    //   console.log(`Changing digi ${digi._id} state: ${digi.state} => ${transition.to}`);
+    //   return digi.setState(transition.to);
+    // })
+    // .then(() => (transition.after ? transition.after(digi, stateManager) : digi));
   }
 
-  _resolveExitPoint(state, exitCode) {
+  intResolveExitPoint(state, exitCode) {
     const stateDefinition = this.states[state];
     if (!stateDefinition) {
       throw new Error(`Cound not find a definition for state ${state}`);
@@ -55,7 +71,7 @@ class Manager {
     if (!exitDefinition) {
       throw new Error(`Could not find the definition of exit point ${exitCode} for state ${state}`);
     }
-    const { to: targetState, next } = callbackDefinition;
+    const { to: targetState, next } = exitDefinition;
     let entryPointFn = null;
     if (next) {
       const [step, entryPointName] = next;
@@ -72,12 +88,13 @@ class Manager {
    *  */
   next(stateObject, exitCode) {
     const currentObjectState = this.options.getState(stateObject);
-    const [targetState, entryPointFn] = this._resolveExitPoint(currentObjectState, exitCode);
+    const [targetState, entryPointFn] = this.intResolveExitPoint(currentObjectState, exitCode);
 
     // TODO handle special exit code wait
     return Promise.resolve()
       .then(() => {
-        console.log(`Changing state: ${currentObjectState} => ${targetState}`);
+        // eslint-disable-next-line no-console
+        this.log(`Changing state: ${currentObjectState} => ${targetState}`);
         return this.options.setState(stateObject, targetState);
       })
       .then(() => {
