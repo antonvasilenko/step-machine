@@ -36,14 +36,15 @@ describe('Manager', () => {
         onExit: {
           [step1.exitCode.ok]: {
             to: 'step_one_done',
-            next: [ step2, step2.entryPoint.START] // a.k.a. after
+            // TODO maybe box it in wrapper object with name and reference to the step
+            next: [ step2, step2.EntryPoint.start] // a.k.a. after
           },
         },
         initial: true,
       },
       'step_one_done': {
         onExit: {
-          [step2.exicCode.ok]: {
+          [step2.ExicCode.ok]: {
             to: 'completed',
           }
         },
@@ -53,7 +54,7 @@ describe('Manager', () => {
           [step3.Callback.onUserSubmit]: [step3, step3.callbacks.onUserSubmit],
         },  
         onExit: {
-          [step2.exicCode.OK]: {
+          [step2.ExicCode.ok]: {
             to: 'completed',
           }
         },

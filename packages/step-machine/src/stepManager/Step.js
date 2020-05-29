@@ -95,7 +95,7 @@ class Step {
     this.Callback = Object.freeze(
       Object.keys(this.callbacks).reduce((acc, callbackName) => {
         const key = normalizeEnumValue(callbackName);
-        acc[key] = normalizeKey(this.name, pointName);
+        acc[key] = normalizeKey(this.name, callbackName);
         return acc;
       }, {}),
     );

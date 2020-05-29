@@ -11,6 +11,22 @@ class Manager {
     this.callback = this.callback.bind(this);
   }
 
+  _resolveCallback (state, callbackName) {
+    const stateDefinition = this.states[state];
+    if (!stateDefinition) {
+      throw new Error(`Cound not find a definition for state ${state}`);
+    }
+
+    const callbackDefinition = stateDefinition.onCallback[callbackName];
+    if (!callbackDefinition) {
+      throw new Error(`Could not find the definition of callback ${callbackName} for state ${state}`);
+    }
+
+    const [step, stepCallbackName = callbackName] = callbackDefinition;
+    const callbackFn = step.callbacks[stepCallbackName];
+    return callbackFn;
+  }
+
   /**
    * This is just as next, but with optional payload.
    * Use to handle callback - continuation of a step that waits for an external process completion.
@@ -19,45 +35,57 @@ class Manager {
   */
   callback(stateObject, callbackName, payload) {
     const currentObjectState = this.options.getState(stateObject);
-    const stateDefinition = this.states[currentObjectState];
+    const callbackFn = this._resolveCallback(currentObjectState, callbackName);
+
+    return callbackFn(stateObject, payload)
+      .then(([updatedStateObject, exitCode])=> this.next(updatedStateObject, exitCode));
+      // .then(() => {
+      //   console.log(`Changing digi ${digi._id} state: ${digi.state} => ${transition.to}`);
+      //   return digi.setState(transition.to);
+      // })
+      // .then(() => (transition.after ? transition.after(digi, stateManager) : digi));
+  }
+
+  _resolveExitPoint(state, exitCode) {
+    const stateDefinition = this.states[state];
     if (!stateDefinition) {
-      throw new Error(`Cound not find a definition for state ${currentObjectState}`);
+      throw new Error(`Cound not find a definition for state ${state}`);
     }
-
-    const callbackDefinition = currentStateTransitions.onCallback[callbackName];
-    if (!callbackDefinition)
-      throw new Error(`Could not find the definition of callback ${callbackName} for state ${currentObjectState}`);
-
-    const [step, stepCallbackName = callbackName] = callbackDefinition;
-    console.log(
-      `Executing callback ${step.name}:${stepCallbackName} for object in state ${currentObjectState}`,
-    );
-    const callbackFn = step.callbacks[stepCallbackName];
-    if (typeof callbackFn !== 'function') {
-      throw new Error(`Callback ${stepCallbackName} not defined in step ${step.name}`);
+    const exitDefinition = stateDefinition.onExit[exitCode];
+    if (!exitDefinition) {
+      throw new Error(`Could not find the definition of exit point ${exitCode} for state ${state}`);
     }
-    return callbackFn(digi, payload)
-      .then(([digi, exitCode])=> this.next(digi, exitCode))
-      .then(() => {
-        console.log(`Changing digi ${digi._id} state: ${digi.state} => ${transition.to}`);
-        return digi.setState(transition.to);
-      })
-      .then(() => (transition.after ? transition.after(digi, stateManager) : digi));
+    const { to: targetState, next } = callbackDefinition;
+    let entryPointFn = null;
+    if (next) {
+      const [step, entryPointName] = next;
+      entryPointFn = step.entryPoints[entryPointName];
+      if (typeof entryPointFn !== 'function') {
+        throw new Error(`Could not find the entry point ${entryPointName} for step ${step.name}`);
+      }
+    }
+    return [targetState, entryPointFn];
   }
 
   /**
    *  this should be triggered somehow when step returns [digi, exit code];
    *  */
-  next(digi, exitCode) {
-    let nextFn = null;
-    let targetState = '';
-    // TODO resolve step.nextFn()
-    return Promise.resolve(digi)
-    .then(d => {
-      console.log(`Changing digi ${d._id} state: ${d.state} => ${targetState}`);
-      return d.setState(targetState);
-    })
-    .then((d) => nextFn ? nextFn(d): d);
+  next(stateObject, exitCode) {
+    const currentObjectState = this.options.getState(stateObject);
+    const [targetState, entryPointFn] = this._resolveExitPoint(currentObjectState, exitCode);
+
+    // TODO handle special exit code wait
+    return Promise.resolve()
+      .then(() => {
+        console.log(`Changing state: ${currentObjectState} => ${targetState}`);
+        return this.options.setState(stateObject, targetState);
+      })
+      .then(() => {
+        if (!entryPointFn) {
+          return stateObject;
+        }
+        return entryPointFn(stateObject);
+      });
   }
 }
 
