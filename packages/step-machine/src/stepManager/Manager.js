@@ -1,3 +1,5 @@
+const Step = require('./Step');
+
 class Manager {
   constructor(
     states,
@@ -18,28 +20,27 @@ class Manager {
     this.options = options;
 
     this.callback = this.callback.bind(this);
+    this.next = this.next.bind(this);
   }
 
   log(...args) {
     this.options.log(...args);
   }
 
-  intResolveCallback(state, callbackName) {
+  intResolveCallback(state, stepName, callbackName) {
     const stateDefinition = this.states[state];
     if (!stateDefinition) {
       throw new Error(`Cound not find a definition for state ${state}`);
     }
-
-    const callbackDefinition = stateDefinition.onCallback[callbackName];
-    if (!callbackDefinition) {
+    const callback = (stateDefinition.onCallback || []).find(
+      (cb) => cb.step.name === stepName && cb.name === callbackName,
+    );
+    if (!callback) {
       throw new Error(
-        `Could not find the definition of callback ${callbackName} for state ${state}`,
+        `No callback ${callbackName} in step ${stepName} for state ${state}. Check step and callback names.`,
       );
     }
-
-    const [step, stepCallbackName = callbackName] = callbackDefinition;
-    const callbackFn = step.callbacks[stepCallbackName];
-    return callbackFn;
+    return callback;
   }
 
   /**
@@ -48,61 +49,52 @@ class Manager {
    * TODO:
    * 1. use StateObject to wrap digi and make Manager entity agnostic
    */
-  callback(stateObject, callbackName, payload) {
+  callback(stateObject, stepName, callbackName, payload) {
     const currentObjectState = this.options.getState(stateObject);
-    const callbackFn = this.intResolveCallback(currentObjectState, callbackName);
-
-    return callbackFn(stateObject, payload).then(([updatedStateObject, exitCode]) =>
-      this.next(updatedStateObject, exitCode),
-    );
-    // .then(() => {
-    //   console.log(`Changing digi ${digi._id} state: ${digi.state} => ${transition.to}`);
-    //   return digi.setState(transition.to);
-    // })
-    // .then(() => (transition.after ? transition.after(digi, stateManager) : digi));
+    const callback = this.intResolveCallback(currentObjectState, stepName, callbackName);
+    return callback.fn(stateObject, payload, this.getStepContext(callback.step));
   }
 
-  intResolveExitPoint(state, exitCode) {
+  intResolveExitPoint(state, step, exitCode) {
     const stateDefinition = this.states[state];
     if (!stateDefinition) {
       throw new Error(`Cound not find a definition for state ${state}`);
     }
-    const exitDefinition = stateDefinition.onExit[exitCode];
-    if (!exitDefinition) {
+    // TODO check if exitcode actually declared in the step
+    const exitPoint = stateDefinition.onExit[Step.getfullExitCode(step, exitCode)];
+    if (!exitPoint) {
       throw new Error(`Could not find the definition of exit point ${exitCode} for state ${state}`);
     }
-    const { to: targetState, next } = exitDefinition;
-    let entryPointFn = null;
-    if (next) {
-      const [step, entryPointName] = next;
-      entryPointFn = step.entryPoints[entryPointName];
-      if (typeof entryPointFn !== 'function') {
-        throw new Error(`Could not find the entry point ${entryPointName} for step ${step.name}`);
-      }
-    }
-    return [targetState, entryPointFn];
+    return exitPoint;
+  }
+
+  getStepContext(step) {
+    return {
+      exit: (obj, exitCode) => this.next(obj, step, exitCode),
+    };
   }
 
   /**
    *  this should be triggered somehow when step returns [digi, exit code];
+   *  Should not be used directly.
    *  */
-  next(stateObject, exitCode) {
+  async next(stateObject, step, exitCode) {
+    if (exitCode === Step.EXIT_CODES.WAIT) {
+      // TODO check if step allows breaks
+      return stateObject;
+    }
     const currentObjectState = this.options.getState(stateObject);
-    const [targetState, entryPointFn] = this.intResolveExitPoint(currentObjectState, exitCode);
+    const { to: targetState, next: entryPoint } = this.intResolveExitPoint(
+      currentObjectState,
+      step,
+      exitCode,
+    );
 
-    // TODO handle special exit code wait
-    return Promise.resolve()
-      .then(() => {
-        // eslint-disable-next-line no-console
-        this.log(`Changing state: ${currentObjectState} => ${targetState}`);
-        return this.options.setState(stateObject, targetState);
-      })
-      .then(() => {
-        if (!entryPointFn) {
-          return stateObject;
-        }
-        return entryPointFn(stateObject);
-      });
+    this.log(`Changing state: ${currentObjectState} => ${targetState}`);
+    const updatedStateObject = await this.options.setState(stateObject, targetState);
+    return entryPoint
+      ? entryPoint.fn(stateObject, this.getStepContext(entryPoint.step))
+      : updatedStateObject;
   }
 }
 

@@ -69,7 +69,7 @@ const validateOptions = (options) => {
 };
 
 const normalizeEnumValue = (key) => `${key.replace(' ', '_')}`;
-const normalizeKey = (name, key) => `${name}::${key.replace(' ', '_')}`;
+const normalizeKey = (name, key) => `${name}:${key.replace(' ', '_')}`;
 
 class EntryPoint {
   constructor(step, name, entryFn) {
@@ -120,6 +120,10 @@ class Step {
         return acc;
       }, {}),
     );
+  }
+
+  static getfullExitCode(step, exitCode) {
+    return normalizeKey(step.name, exitCode);
   }
 }
 

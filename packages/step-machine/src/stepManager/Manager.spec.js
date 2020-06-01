@@ -8,11 +8,11 @@ describe('Manager', () => {
     // begin -> start step1 ok -> start step2 ok -> end
     const step1 = new Step('step_one', {
       entryPoints: {
-        start: async (digi) => {
+        start: async (digi, ctx) => {
           console.log('Starting step1');
           console.log('Doing step1 job');
           console.log('Exiting step1 with success');
-          return [digi, 'ok'];
+          return ctx.exit(digi, 'ok');
         },
       },
       breakable: false,
@@ -20,11 +20,11 @@ describe('Manager', () => {
     });
     const step2 = new Step('step_two', {
       entryPoints: {
-        start: async (digi) => {
+        start: async (digi, ctx) => {
           console.log('Starting step2');
           console.log('Doing step2 job');
           console.log('Exiting step2 with success');
-          return [digi, 'ok'];
+          return ctx.exit(digi, 'ok');
         },
       },
       breakable: false,
@@ -54,17 +54,16 @@ describe('Manager', () => {
     const stepManager = new Manager(states, [step1, step2]);
     expect(stepManager).toBeInstanceOf(Manager);
   });
-
-  it('machine with breakable step created', () => {
+  describe('machine with breakable step', () => {
     // simple step definition
-    // begin -> start step1 ok -> start step2 wait |...| onUserSubmit  ok -> end
+    // begin -> start step1 ok ->  end
     const step1 = new Step('step_one', {
       entryPoints: {
-        start: async (digi) => {
-          console.log('Starting step1');
-          console.log('Doing step1 job');
-          console.log('Exiting step1 with success');
-          return [digi, 'ok'];
+        start: async (digi, ctx) => {
+          console.log('Step1: starting');
+          console.log('Step1: doing the job');
+          console.log('Step1: exit with success');
+          return ctx.exit(digi, 'ok');
         },
       },
       breakable: false,
@@ -72,18 +71,18 @@ describe('Manager', () => {
     });
     const step2 = new Step('step_two', {
       entryPoints: {
-        start: async (digi) => {
+        start: async (digi, ctx) => {
           console.log('Step2: Starting');
           console.log('Step2: Doing job');
           console.log('Step2: Breaking until user submits the form');
-          return [digi, 'wait']; // ctx.exit('wait', updatedDigi);
+          return ctx.exit(digi, 'wait');
         },
       },
       callbacks: {
-        onUserSubmit: (digi, payload) => {
-          console.log('Step3: Got some paylad back from user for');
-          console.log('Step3: Processing user payload', payload);
-          return [digi, 'ok']; // ctx.exit('ok', updatedDigi);
+        onUserSubmit: (digi, payload, ctx) => {
+          console.log('Step2: Got some paylad back from user for');
+          console.log('Step2: Processing user payload', payload);
+          return ctx.exit(digi, 'ok');
         },
       },
       breakable: true,
@@ -94,7 +93,6 @@ describe('Manager', () => {
         onExit: {
           [step1.ExitCode.ok]: {
             to: 'step_one_done',
-            // TODO maybe box it in wrapper object with name and reference to the step
             next: step2.entryPoints.start, // a.k.a. after
           },
         },
@@ -112,7 +110,19 @@ describe('Manager', () => {
         final: true,
       },
     };
-    const stepManager = new Manager(states, [step1, step2]);
-    expect(stepManager).toBeInstanceOf(Manager);
+    it('created', () => {
+      const stepManager = new Manager(states, [step1, step2]);
+      expect(stepManager).toBeInstanceOf(Manager);
+    });
+    it('runs', async () => {
+      const stepManager = new Manager(states, [step1, step2]);
+      const obj = { state: 'new' };
+      await step1.entryPoints.start.fn(obj, stepManager.getStepContext(step1));
+    });
+    it('continues on callback', async () => {
+      const stepManager = new Manager(states, [step1, step2]);
+      const obj = { state: 'step_one_done' };
+      await stepManager.callback(obj, 'step_two', 'onUserSubmit', { nickname: 'testnick' });
+    });
   });
 });
