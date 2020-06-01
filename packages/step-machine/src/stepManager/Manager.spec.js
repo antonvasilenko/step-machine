@@ -35,7 +35,6 @@ describe('Manager', () => {
         onExit: {
           [step1.ExitCode.ok]: {
             to: 'step_one_done',
-            // TODO maybe box it in wrapper object with name and reference to the step
             next: step2.entryPoints.start, // a.k.a. after
           },
         },
