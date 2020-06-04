@@ -125,6 +125,10 @@ class Step {
   static getfullExitCode(step, exitCode) {
     return normalizeKey(step.name, exitCode);
   }
+
+  accept(visitorFn) {
+    visitorFn(this, 'step');
+  }
 }
 
 Step.EXIT_CODES = EXIT_CODES;

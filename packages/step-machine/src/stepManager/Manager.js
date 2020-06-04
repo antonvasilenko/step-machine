@@ -96,6 +96,11 @@ class Manager {
       ? entryPoint.fn(stateObject, this.getStepContext(entryPoint.step))
       : updatedStateObject;
   }
+
+  accept(visitorFn) {
+    this.steps.map((step) => step.accept(visitorFn));
+    Object.keys(this.states).map((state) => visitorFn(state, 'state'));
+  }
 }
 
 module.exports = Manager;
