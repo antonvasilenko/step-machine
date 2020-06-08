@@ -1,7 +1,6 @@
 /* eslint-disable no-console, import/no-extraneous-dependencies */
 const graphlib = require('@dagrejs/graphlib');
 const dot = require('graphlib-dot');
-const graphviz = require('graphviz');
 
 const getDotStr = (stateMachine) => {
   const g = new graphlib.Graph();

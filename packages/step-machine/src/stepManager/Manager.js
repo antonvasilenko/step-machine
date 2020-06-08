@@ -21,6 +21,7 @@ class Manager {
 
     this.callback = this.callback.bind(this);
     this.next = this.next.bind(this);
+    this.accept = this.accept.bind(this);
   }
 
   log(...args) {
@@ -98,8 +99,25 @@ class Manager {
   }
 
   accept(visitorFn) {
-    this.steps.map((step) => step.accept(visitorFn));
-    Object.keys(this.states).map((state) => visitorFn(state, 'state'));
+    Object.keys(this.states).forEach((state) => visitorFn(state, 'state'));
+    this.steps.forEach((step) => step.accept(visitorFn));
+    Object.values(this.states).forEach(
+      (state) =>
+        state.onExit &&
+        Object.entries(state.onExit).forEach(([exitCode, { to, next }]) => {
+          const stepName = exitCode.split(':')[0];
+          const step = this.steps.find((s) => s.name === stepName);
+          visitorFn(
+            {
+              step,
+              exitCode,
+              to,
+              next,
+            },
+            'transition',
+          );
+        }),
+    );
   }
 }
 

@@ -8,36 +8,46 @@ const setObj = (g, obj) => {
 const getDotStr = (stateMachine) => {
   const g = graphviz.digraph('G');
   setObj(g, { label: 'Digi Step Machine', labelloc: 't' });
-  // g.set('rankdir', 'LR');
-
-  // Object.keys(stateMachine.states).forEach((stateKey) => {
-  // g.setNode(stateKey);
-  // const state = fsm.states[stateKey];
-  // Object.keys(state.on).forEach((commandName) => {
-  //   const transition = state.on[commandName];
-  //   g.setEdge(stateKey, transition.to, { label: commandName });
-  // });
-  // });
 
   const visitStep = (step) => {
     g.addNode(step.name, {
-      shape: 'Mrecord',
+      shape: 'box3d',
       xlabel: step.name,
-      label: [
-        `{${Object.values(step.entryPoints).map((ep) => ep.name)}}`,
-        `{${Object.values(step.callbacks).map((cb) => cb.name)}|}`,
-        `{${step.exitCodes.join('|')}}`,
-      ].join('|'),
+      width: 1.5,
     });
+  };
+
+  const visitState = (state) =>
+    g.addNode(state, { shape: 'point', color: 'blue', width: 0.1, xlabel: state });
+
+  const visitTransition = (transition) => {
+    const { step, exitCode, to, next } = transition;
+    g.addEdge(step.name, to, {
+      dir: 'both',
+      arrowhead: 'onormal',
+      arrowtail: 'oinv',
+      minlen: 2,
+      taillabel: exitCode.split(':')[1],
+    });
+    if (next) {
+      g.addEdge(to, `${next.step.name}`, {
+        labeltarget: next.name,
+        minlen: 2,
+        arrowhead: 'odotonormal',
+      });
+    }
   };
 
   const visit = (element, kind) => {
     switch (kind) {
       case 'state':
-        g.addNode(element, { shape: 'point', color: 'blue', width: 0.3, xlabel: element });
+        visitState(element);
         break;
       case 'step':
         visitStep(element);
+        break;
+      case 'transition':
+        visitTransition(element);
         break;
       default:
         break;
