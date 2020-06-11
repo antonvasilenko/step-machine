@@ -37,7 +37,7 @@ describe('graphViz', () => {
         },
       },
       breakable: true,
-      exitCodes: ['ok', 'wait'],
+      exitCodes: ['ok', 'wait', 'failed'],
     });
     const states = {
       new: {
@@ -47,7 +47,7 @@ describe('graphViz', () => {
             next: step2.entryPoints.start, // a.k.a. after
           },
         },
-        initial: true,
+        initialEnter: step1.entryPoints.start,
       },
       step_one_done: {
         onCallback: [step2.callbacks.onUserSubmit],
@@ -55,9 +55,15 @@ describe('graphViz', () => {
           [step2.ExitCode.ok]: {
             to: 'completed',
           },
+          [step2.ExitCode.failed]: {
+            to: 'terminated',
+          },
         },
       },
       completed: {
+        final: true,
+      },
+      terminated: {
         final: true,
       },
     };

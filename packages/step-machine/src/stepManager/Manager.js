@@ -99,11 +99,19 @@ class Manager {
   }
 
   accept(visitorFn) {
-    Object.keys(this.states).forEach((state) => visitorFn(state, 'state'));
+    Object.entries(this.states).forEach(([name, value]) =>
+      visitorFn(
+        {
+          name,
+          ...value,
+        },
+        'state',
+      ),
+    );
     this.steps.forEach((step) => step.accept(visitorFn));
-    Object.values(this.states).forEach(
-      (state) =>
-        state.onExit &&
+    Object.values(this.states).forEach((state) => {
+      if (state.onExit) {
+        // visit connections between exit and entry points
         Object.entries(state.onExit).forEach(([exitCode, { to, next }]) => {
           const stepName = exitCode.split(':')[0];
           const step = this.steps.find((s) => s.name === stepName);
@@ -116,8 +124,9 @@ class Manager {
             },
             'transition',
           );
-        }),
-    );
+        });
+      }
+    });
   }
 }
 

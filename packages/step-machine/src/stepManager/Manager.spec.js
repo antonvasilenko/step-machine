@@ -38,7 +38,7 @@ describe('Manager', () => {
             next: step2.entryPoints.start, // a.k.a. after
           },
         },
-        initial: true,
+        initialEnter: step1.entryPoints.start,
       },
       step_one_done: {
         onExit: {
@@ -96,7 +96,7 @@ describe('Manager', () => {
             next: step2.entryPoints.start, // a.k.a. after
           },
         },
-        initial: true,
+        initialEnter: step1.entryPoints.start,
       },
       step_one_done: {
         onCallback: [step2.callbacks.onUserSubmit],

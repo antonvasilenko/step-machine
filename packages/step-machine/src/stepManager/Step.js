@@ -128,6 +128,9 @@ class Step {
 
   accept(visitorFn) {
     visitorFn(this, 'step');
+    Object.values(this.callbacks).forEach((cb) => visitorFn(cb, 'step.callback'));
+    Object.values(this.entryPoints).forEach((ep) => visitorFn(ep, 'step.entrypoint'));
+    this.exitCodes.forEach((ec) => visitorFn(ec, 'step.exitcode'));
   }
 }
 
