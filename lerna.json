@@ -2,5 +2,16 @@
   "packages": [
     "packages/*"
   ],
+  "command": {
+    "publish": {
+      "ignoreChanges": [
+        "ignored-file",
+        "*.md",
+        "*.txt",
+        "test/**",
+        "**/spec.js"
+      ]
+    }
+  },
   "version": "0.0.1"
 }
