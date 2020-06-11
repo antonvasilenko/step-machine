@@ -2,11 +2,11 @@
 const fs = require('fs-extra');
 const path = require('path');
 const renderGraph = require('./graphViz');
-const { Step, Manager } = require('../stepManager');
+const { Step, Manager } = require('step-machine');
 
 fs.ensureDirSync(path.join(__dirname, 'doc'));
 
-describe('graphViz', () => {
+describe('toDot', () => {
   describe('with 3 consequent steps defined', () => {
     const step1 = new Step('step_one', {
       entryPoints: {
