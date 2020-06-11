@@ -1,7 +1,27 @@
 {
   "name": "root",
   "private": true,
+  "scripts": {
+    "build": "npm ci && npm run build:go",
+    "build:dev": "npm i && npm run build:go",
+    "build:go": "lerna bootstrap --ignore-scripts",
+    "lerna:version": "lerna version --yes",
+    "lerna:publish": "lerna publish from-package --yes"
+  },
   "devDependencies": {
-    "lerna": "^3.22.1"
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb": "^18.1.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-prettier": "^3.1.3",
+    "fs-extra": "^9.0.1",
+    "jest": "^26.0.1",
+    "lerna": "^3.22.1",
+    "nodemon": "^2.0.4",
+    "prettier": "^2.0.5"
+  },
+  "dependencies": {
+    "step-machine": "file:packages/step-machine",
+    "step-machine-graphviz": "file:packages/step-machine-graphviz"
   }
 }
