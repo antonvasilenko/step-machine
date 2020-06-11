@@ -1,4 +1,3 @@
-/* eslint-disable no-console, import/no-extraneous-dependencies */
 const graphviz = require('graphviz');
 
 const setObj = (g, obj) => {

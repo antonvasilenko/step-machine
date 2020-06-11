@@ -1,8 +1,8 @@
 /* eslint-disable no-console, import/no-extraneous-dependencies */
 const fs = require('fs-extra');
 const path = require('path');
-const renderGraph = require('./graphViz');
 const { Step, Manager } = require('step-machine');
+const toDot = require('./toDot');
 
 fs.ensureDirSync(path.join(__dirname, 'doc'));
 
@@ -73,7 +73,7 @@ describe('toDot', () => {
     });
 
     it('renders graph', () => {
-      const graphStr = renderGraph(stepManager);
+      const graphStr = toDot(stepManager);
       fs.writeFileSync(path.join(__dirname, 'doc/graphviz.dot'), graphStr);
     });
   });
