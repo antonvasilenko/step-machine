@@ -47,8 +47,6 @@ class Manager {
   /**
    * This is just as next, but with optional payload.
    * Use to handle callback - continuation of a step that waits for an external process completion.
-   * TODO:
-   * 1. use StateObject to wrap digi and make Manager entity agnostic
    */
   callback(stateObject, stepName, callbackName, payload) {
     const currentObjectState = this.options.getState(stateObject);
