@@ -39,6 +39,7 @@ const validateName = (name) => {
   }
 };
 
+// eslint-disable-next-line complexity, max-lines-per-function
 const validateOptions = (options) => {
   if (!hasOptions(options)) {
     throw new Error('Options are mandatory');

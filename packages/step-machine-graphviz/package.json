@@ -5,9 +5,12 @@
   "main": "src/index.js",
   "scripts": {
     "test": "jest",
+    "test:report": "npm run test -- --coverage --ci",
     "test:watch": "npm run test -- --watch",
     "pretest": "npm run lint",
-    "lint": "eslint --color \"src/**/*.js\""
+    "lint": "eslint --color \"src/**/*.js\"",
+    "lint:fix": "prettier --write \"src/**/*.{js,ts}\"",
+    "lint:check": "prettier -l \"src/**/*.{js,ts}\""
   },
   "author": "",
   "license": "ISC",

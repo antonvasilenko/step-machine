@@ -48,6 +48,7 @@ class Manager {
    * This is just as next, but with optional payload.
    * Use to handle callback - continuation of a step that waits for an external process completion.
    */
+  // eslint-disable-next-line max-params
   callback(stateObject, stepName, callbackName, payload) {
     const currentObjectState = this.options.getState(stateObject);
     const callback = this.intResolveCallback(currentObjectState, stepName, callbackName);
@@ -98,13 +99,7 @@ class Manager {
 
   accept(visitorFn) {
     Object.entries(this.states).forEach(([name, value]) =>
-      visitorFn(
-        {
-          name,
-          ...value,
-        },
-        'state',
-      ),
+      visitorFn(Object.assign({ name }, value), 'state'),
     );
     this.steps.forEach((step) => step.accept(visitorFn));
     Object.values(this.states).forEach((state) => {

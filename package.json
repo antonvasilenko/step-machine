@@ -4,13 +4,17 @@
   "scripts": {
     "build": "npm ci && npm run build:go",
     "build:dev": "npm i && npm run build:go",
-    "build:go": "npm run lerna:bs && npm run lerna:test",
+    "build:go": "npm run lerna:bs && npm run lerna:test:report",
     "lerna:test": "lerna run test",
+    "lerna:test:report": "lerna run test:report",
     "lerna:bs": "lerna bootstrap --ignore-scripts",
     "lerna:version": "lerna version --yes",
     "lerna:publish": "lerna publish from-package --yes"
   },
   "devDependencies": {
+    "@types/jest": "^26.0.0",
+    "@typescript-eslint/eslint-plugin": "^3.2.0",
+    "@typescript-eslint/parser": "3.1.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.1.0",
     "eslint-config-prettier": "^6.11.0",
@@ -20,7 +24,9 @@
     "jest": "^26.0.1",
     "lerna": "^3.22.1",
     "nodemon": "^2.0.4",
-    "prettier": "^2.0.5"
+    "prettier": "^2.0.5",
+    "ts-jest": "^26.1.0",
+    "typescript": "^3.9.5"
   },
   "dependencies": {
     "step-machine": "file:packages/step-machine",

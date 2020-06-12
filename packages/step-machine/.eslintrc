@@ -1,0 +1,106 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "extends": [
+    "plugin:@typescript-eslint/recommended",
+    "prettier/@typescript-eslint",
+    "plugin:prettier/recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "settings": {
+    "import/extensions": [".js", ".ts", ".json"],
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts"]
+     },
+     "import/resolver": {
+         "node": {
+             "extensions": [".js", ".ts"]
+         }
+     }
+  },
+  "rules": {
+    "linebreak-style": "off",
+    "no-await-in-loop": "off",
+    "no-undefined": "off",
+    "no-eq-null": "error",
+    "no-invalid-this": "error",
+    "no-useless-call": "error",
+    "no-dupe-else-if": "error",
+    "callback-return": "error",
+    "consistent-this": "error",
+    "no-setter-return": "error",
+    "no-import-assign": "error",
+    "no-inline-comments": "error",
+    "no-native-reassign": "error",
+    "default-param-last": "error",
+    "handle-callback-err": "error",
+    "no-constructor-return": "error",
+    "prefer-regex-literals": "error",
+    "require-atomic-updates": "error",
+    "newline-per-chained-call": "off",
+    "no-return-assign": ["error", "always"],
+    "comma-dangle": ["error", "always-multiline"],
+    "no-underscore-dangle": ["error", { "allow": ["_id"] } ],
+    "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "ForInStatement",
+        "message":
+          "for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array."
+      },
+      {
+        "selector": "LabeledStatement",
+        "message":
+          "Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand."
+      },
+      {
+        "selector": "WithStatement",
+        "message":
+          "`with` is disallowed in strict mode because it makes code impossible to predict and optimize."
+      }
+    ],
+    "complexity": ["error", 4],
+    "max-params": ["error", 3],
+    "max-depth": ["error", 4],
+    // "max-statements": ["error", 10],
+    "max-classes-per-file": ["error", 1],
+    "max-nested-callbacks": ["error", 3],
+    "max-statements-per-line": ["error", { "max": 1 }],
+    "max-lines-per-function": ["error", { "max": 25, "skipBlankLines": true, "skipComments": true }]
+  },
+  "overrides": [
+    {
+      "files": [ "src/**/*.js" ],
+      "rules": {
+        "@typescript-eslint/no-var-requires": "off",
+        "import/no-extraneous-dependencies": "off"
+      }
+    },
+    {
+      "files": [ "src/**/*.ts" ],
+      "rules": {
+        "no-unused-vars": "off",
+        "import/extensions" : "off",
+        "import/no-extraneous-dependencies": "off",
+        "@typescript-eslint/no-unused-vars": ["error"]
+      }
+    },
+    {
+      "files": [ "src/**/*.spec.js" ],
+      "rules": {
+        "max-statements": "off",
+        "no-inline-comments": "off",
+        "no-import-assign": "off",
+        "handle-callback-err": "off",
+        "no-unused-expressions": "off",
+        "max-lines-per-function": "off",
+        "max-nested-callbacks": "off",
+        "import/no-extraneous-dependencies": "off",
+        "no-return-assign": ["error", "except-parens" ]
+      }
+    }
+  ]
+}

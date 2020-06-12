@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 const Manager = require('./Manager');
 const Step = require('./Step');
 
