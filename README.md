@@ -1,23 +1,18 @@
 # step-machine
 ![Node.js CI](https://github.com/antonvasilenko/step-machine/workflows/Node.js%20CI/badge.svg?branch=master)
 
-A library to build execution workflows out of asynchronous/long-running steps.
+A library and related toolset to build execution workflows of asynchronous/long-running steps.
 
-## Installation
-
-
-```bash
-npm i step-machine
-```
+## Packages docs
+* [step-machine](/packages/step-machine/README.md)
+* [step-machine-graphviz]
 
 ## Usage
 
-check unit tests of the lib components.
+check unit tests.
 
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+## Future Plans
+* add StepMachine.start() to start with the registered entry point of the step machine.
+* add checks for stem-machine consistency
+  * all exit/entry points connected
 
-Please make sure to update tests as appropriate.
-
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
