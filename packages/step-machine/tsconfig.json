@@ -9,12 +9,14 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
+    "declaration": true,
     "outDir": "dist",
     "baseUrl": ".",
     "lib": ["es2020"],
     "typeRoots": [
       "./src/types",
-      "./node_modules/@types"
+      "./node_modules/@types",
+      "../../node_modules/@types"
     ],
     "paths": {
       "*": [
@@ -23,5 +25,6 @@
       ]
     }
   },
-  "include": ["src/**/*"]
+  "include": ["src"],
+  "exclude": ["src/types", "src/**/*.spec.?s"]
 }

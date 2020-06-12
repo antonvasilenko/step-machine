@@ -1,4 +1,4 @@
-const Step = require('./Step');
+const Step = require('./step/Step');
 
 class Manager {
   constructor(
@@ -93,7 +93,7 @@ class Manager {
     this.log(`Changing state: ${currentObjectState} => ${targetState}`);
     const updatedStateObject = await this.options.setState(stateObject, targetState);
     return entryPoint
-      ? entryPoint.fn(stateObject, this.getStepContext(entryPoint.step))
+      ? entryPoint.invoke(stateObject, this.getStepContext(entryPoint.step))
       : updatedStateObject;
   }
 

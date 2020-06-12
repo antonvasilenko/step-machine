@@ -2,9 +2,10 @@
   "name": "step-machine",
   "version": "0.0.3",
   "description": "",
-  "main": "src/",
+  "main": "dist/",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "compile": "tsc",
+    "compile": "rm -rf dist && tsc",
     "serve": "nodemon src/index.js",
     "test": "jest",
     "test:report": "npm run test -- --coverage --ci",

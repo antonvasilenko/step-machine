@@ -1,17 +1,19 @@
-const Step = require('./Step');
+import Step = require('./Step');
+import Callback = require('./Callback');
+import { StepOptions, ExecutionContext, CallbackFunc } from './types';
 
 describe('Step', () => {
   const defOpts = {
     entryPoints: {
-      start: () => 'wait',
+      start: (stObj, ctx: ExecutionContext<unknown>) => ctx.exit(stObj, 'wait'),
     },
     exitCodes: ['done'],
-  };
+  } as StepOptions;
   it('requires step name', () => {
-    expect(() => new Step('', {})).toThrow(Error);
+    expect(() => new Step('', {} as StepOptions)).toThrow(Error);
   });
   it('requires step options', () => {
-    expect(() => new Step('validation')).toThrow(Error);
+    expect(() => new Step('validation', null)).toThrow(Error);
   });
   it('requires at least one entry point', () => {
     const entryPoints = {
@@ -21,7 +23,8 @@ describe('Step', () => {
       () =>
         new Step('a', {
           entryPoints,
-        }),
+          exitCodes: [],
+        } as StepOptions),
     ).toThrow(Error);
   });
   it('requires at least one exit code', () => {
@@ -45,7 +48,7 @@ describe('Step', () => {
     beforeEach(() => {
       breakableOpts = {
         ...defOpts,
-        callbacks: { onUserSubmit: () => Promise.resolve('done') },
+        callbacks: { onUserSubmit: async (digi, ctx: ExecutionContext) => ctx.exit(digi, 'done') },
         breakable: true,
         exitCodes: ['done', Step.EXIT_CODES.WAIT],
       };
@@ -65,7 +68,7 @@ describe('Step', () => {
 
     it('holds provided callbacks', () => {
       const step = new Step('br', breakableOpts);
-      expect(step.callbacks.onUserSubmit).toBeInstanceOf(Step.Callback);
+      expect(step.callbacks.onUserSubmit).toBeInstanceOf(Callback);
     });
   });
 });
