@@ -1,6 +1,6 @@
 import Step = require('./Step');
 import Callback = require('./Callback');
-import { StepOptions, ExecutionContext, CallbackFunc } from './types';
+import { StepOptions, ExecutionContext, CallbackFunc, EntryFunc } from './types';
 
 describe('Step', () => {
   const defOpts = {
@@ -16,25 +16,20 @@ describe('Step', () => {
     expect(() => new Step('validation', null)).toThrow(Error);
   });
   it('requires at least one entry point', () => {
-    const entryPoints = {
-      start: null,
+    const opts: StepOptions = {
+      entryPoints: {},
+      exitCodes: [],
     };
-    expect(
-      () =>
-        new Step('a', {
-          entryPoints,
-          exitCodes: [],
-        } as StepOptions),
-    ).toThrow(Error);
+    expect(() => new Step('a', opts)).toThrow(Error);
   });
   it('requires at least one exit code', () => {
-    const entryPoints = {
-      start: null,
-    };
+    const start: EntryFunc<unknown> = (obj, ctx) => ctx.exit(obj, 'dummy');
     expect(
       () =>
         new Step('a', {
-          entryPoints,
+          entryPoints: {
+            start,
+          },
           exitCodes: [],
         }),
     ).toThrow(Error);
@@ -44,11 +39,11 @@ describe('Step', () => {
     expect(step).toBeInstanceOf(Step);
   });
   describe('when awaitable/async/breakable', () => {
-    let breakableOpts = null;
+    let breakableOpts: StepOptions = null;
     beforeEach(() => {
       breakableOpts = {
         ...defOpts,
-        callbacks: { onUserSubmit: async (digi, ctx: ExecutionContext) => ctx.exit(digi, 'done') },
+        callbacks: { onUserSubmit: async (digi, _payload, ctx) => ctx.exit(digi, 'done') },
         breakable: true,
         exitCodes: ['done', Step.EXIT_CODES.WAIT],
       };
