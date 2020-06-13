@@ -1,6 +1,6 @@
 {
   "name": "step-machine-graphviz",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "",
   "main": "src/index.js",
   "scripts": {
@@ -16,6 +16,6 @@
   "license": "ISC",
   "dependencies": {
     "graphviz": "^0.0.9",
-    "step-machine": "^0.0.4"
+    "step-machine": "^0.0.5"
   }
 }
