@@ -1,14 +1,42 @@
-const Step = require('./step/Step');
+import Step = require('./step/Step');
+import EntryPoint = require('./step/EntryPoint');
+import Callback = require('./step/Callback');
+import { ExecutionContext, VisitorFunc, Element } from './step/types';
 
-class Manager {
+interface StateConfig<StateObject> {
+  readonly onExit: {
+    [exitCodeKey: string]: {
+      to: string;
+      next?: EntryPoint<StateObject>;
+    };
+  };
+  readonly onCallback: Callback<StateObject>[];
+  readonly initialEnter: EntryPoint<StateObject>;
+}
+
+interface StatesConfig<StateObject> {
+  [state: string]: StateConfig<StateObject>;
+}
+
+interface Options<StateObject> {
+  getState(obj: StateObject): string;
+  setState(obj: StateObject, state: string): PromiseLike<StateObject>;
+  log(message?: string, ...optionalParams: any[]): void;
+}
+
+class Manager<StateObject> implements Element {
+  private states: Readonly<StatesConfig<StateObject>>;
+  private steps: ReadonlyArray<Step<StateObject>>;
+  private options: Options<StateObject>;
   constructor(
-    states,
-    steps,
+    states: StatesConfig<StateObject>,
+    steps: Step<StateObject>[],
     options = {
-      getState: (value) => value.state,
-      setState: async (value, state) => {
+      getState: (value: any) => value.state,
+      setState: async (value: any, state: string) => {
         // eslint-disable-next-line no-param-reassign
         value.state = state;
+        return value;
       },
       // eslint-disable-next-line no-console
       log: console.log,
@@ -24,11 +52,11 @@ class Manager {
     this.accept = this.accept.bind(this);
   }
 
-  log(...args) {
+  log(...args: any[]): void {
     this.options.log(...args);
   }
 
-  intResolveCallback(state, stepName, callbackName) {
+  intResolveCallback(state: string, stepName: string, callbackName: string): Callback<StateObject> {
     const stateDefinition = this.states[state];
     if (!stateDefinition) {
       throw new Error(`Cound not find a definition for state ${state}`);
@@ -49,13 +77,22 @@ class Manager {
    * Use to handle callback - continuation of a step that waits for an external process completion.
    */
   // eslint-disable-next-line max-params
-  callback(stateObject, stepName, callbackName, payload) {
+  callback(
+    stateObject: StateObject,
+    stepName: string,
+    callbackName: string,
+    payload: unknown,
+  ): PromiseLike<StateObject> {
     const currentObjectState = this.options.getState(stateObject);
     const callback = this.intResolveCallback(currentObjectState, stepName, callbackName);
-    return callback.fn(stateObject, payload, this.getStepContext(callback.step));
+    return callback.invoke(stateObject, payload, this.getStepContext(callback.step));
   }
 
-  intResolveExitPoint(state, step, exitCode) {
+  intResolveExitPoint(
+    state: string,
+    step: Step<StateObject>,
+    exitCode: string,
+  ): { to: string; next?: EntryPoint<StateObject> } {
     const stateDefinition = this.states[state];
     if (!stateDefinition) {
       throw new Error(`Cound not find a definition for state ${state}`);
@@ -68,7 +105,7 @@ class Manager {
     return exitPoint;
   }
 
-  getStepContext(step) {
+  getStepContext(step: Step<StateObject>): ExecutionContext<StateObject> {
     return {
       exit: (obj, exitCode) => this.next(obj, step, exitCode),
     };
@@ -78,7 +115,11 @@ class Manager {
    *  this should be triggered somehow when step returns [digi, exit code];
    *  Should not be used directly.
    *  */
-  async next(stateObject, step, exitCode) {
+  async next(
+    stateObject: StateObject,
+    step: Step<StateObject>,
+    exitCode: string,
+  ): Promise<StateObject> {
     if (exitCode === Step.EXIT_CODES.WAIT) {
       // TODO check if step allows breaks
       return stateObject;
@@ -97,7 +138,7 @@ class Manager {
       : updatedStateObject;
   }
 
-  accept(visitorFn) {
+  accept(visitorFn: VisitorFunc): void {
     Object.entries(this.states).forEach(([name, value]) =>
       visitorFn(Object.assign({ name }, value), 'state'),
     );
@@ -123,4 +164,4 @@ class Manager {
   }
 }
 
-module.exports = Manager;
+export = Manager;

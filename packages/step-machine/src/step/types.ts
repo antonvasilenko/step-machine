@@ -12,13 +12,17 @@ export interface EntryFunc<StateObject> {
   (stateObj: StateObject, ctx: ExecutionContext<StateObject>): PromiseLike<StateObject>;
 }
 
-export interface VisitorFunc {
-  (element: unknown, kind: string): void;
+export interface Element {
+  accept(visitorFn: VisitorFunc): void;
 }
 
-export interface StepOptions {
+export interface VisitorFunc {
+  (element: Element | unknown, kind: string): void;
+}
+
+export interface StepOptions<StateObject> {
   exitCodes: string[];
   breakable?: boolean;
-  callbacks?: Record<string, CallbackFunc<unknown>>;
-  entryPoints: Record<string, CallbackFunc<unknown>>;
+  callbacks?: Record<string, CallbackFunc<StateObject>>;
+  entryPoints: Record<string, EntryFunc<StateObject>>;
 }

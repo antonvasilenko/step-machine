@@ -1,7 +1,7 @@
 const Manager = require('./Manager');
 const Step = require('./step/Step');
 
-xdescribe('Manager', () => {
+describe('Manager', () => {
   it('machine with 2 simple sync step created', () => {
     // simple step definition
     // begin -> start step1 ok -> start step2 ok -> end

@@ -1,6 +1,6 @@
 import Step = require('./Step');
 import Callback = require('./Callback');
-import { StepOptions, ExecutionContext, CallbackFunc, EntryFunc } from './types';
+import { StepOptions, ExecutionContext, EntryFunc } from './types';
 
 describe('Step', () => {
   const defOpts = {
@@ -8,15 +8,15 @@ describe('Step', () => {
       start: (stObj, ctx: ExecutionContext<unknown>) => ctx.exit(stObj, 'wait'),
     },
     exitCodes: ['done'],
-  } as StepOptions;
+  } as StepOptions<unknown>;
   it('requires step name', () => {
-    expect(() => new Step('', {} as StepOptions)).toThrow(Error);
+    expect(() => new Step('', {} as StepOptions<unknown>)).toThrow(Error);
   });
   it('requires step options', () => {
     expect(() => new Step('validation', null)).toThrow(Error);
   });
   it('requires at least one entry point', () => {
-    const opts: StepOptions = {
+    const opts: StepOptions<unknown> = {
       entryPoints: {},
       exitCodes: [],
     };
@@ -39,7 +39,7 @@ describe('Step', () => {
     expect(step).toBeInstanceOf(Step);
   });
   describe('when awaitable/async/breakable', () => {
-    let breakableOpts: StepOptions = null;
+    let breakableOpts: StepOptions<unknown> = null;
     beforeEach(() => {
       breakableOpts = {
         ...defOpts,
