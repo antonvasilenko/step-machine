@@ -1,37 +1,35 @@
-const Step = require('./Step');
+import Step = require('./Step');
+import Callback = require('./Callback');
+import { StepOptions, ExecutionContext, EntryFunc } from './types';
 
 describe('Step', () => {
   const defOpts = {
     entryPoints: {
-      start: () => 'wait',
+      start: (stObj, ctx: ExecutionContext<unknown>) => ctx.exit(stObj, 'wait'),
     },
     exitCodes: ['done'],
-  };
+  } as StepOptions<unknown>;
   it('requires step name', () => {
-    expect(() => new Step('', {})).toThrow(Error);
+    expect(() => new Step('', {} as StepOptions<unknown>)).toThrow(Error);
   });
   it('requires step options', () => {
-    expect(() => new Step('validation')).toThrow(Error);
+    expect(() => new Step('validation', null)).toThrow(Error);
   });
   it('requires at least one entry point', () => {
-    const entryPoints = {
-      start: null,
+    const opts: StepOptions<unknown> = {
+      entryPoints: {},
+      exitCodes: [],
     };
-    expect(
-      () =>
-        new Step('a', {
-          entryPoints,
-        }),
-    ).toThrow(Error);
+    expect(() => new Step('a', opts)).toThrow(Error);
   });
   it('requires at least one exit code', () => {
-    const entryPoints = {
-      start: null,
-    };
+    const start: EntryFunc<unknown> = (obj, ctx) => ctx.exit(obj, 'dummy');
     expect(
       () =>
         new Step('a', {
-          entryPoints,
+          entryPoints: {
+            start,
+          },
           exitCodes: [],
         }),
     ).toThrow(Error);
@@ -41,11 +39,11 @@ describe('Step', () => {
     expect(step).toBeInstanceOf(Step);
   });
   describe('when awaitable/async/breakable', () => {
-    let breakableOpts = null;
+    let breakableOpts: StepOptions<unknown> = null;
     beforeEach(() => {
       breakableOpts = {
         ...defOpts,
-        callbacks: { onUserSubmit: () => Promise.resolve('done') },
+        callbacks: { onUserSubmit: async (digi, _payload, ctx) => ctx.exit(digi, 'done') },
         breakable: true,
         exitCodes: ['done', Step.EXIT_CODES.WAIT],
       };
@@ -65,7 +63,7 @@ describe('Step', () => {
 
     it('holds provided callbacks', () => {
       const step = new Step('br', breakableOpts);
-      expect(step.callbacks.onUserSubmit).toBeInstanceOf(Step.Callback);
+      expect(step.callbacks.onUserSubmit).toBeInstanceOf(Callback);
     });
   });
 });

@@ -1,17 +1,21 @@
 {
   "name": "step-machine-graphviz",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "",
   "main": "src/index.js",
   "scripts": {
     "test": "jest",
+    "test:report": "npm run test -- --coverage --ci",
     "test:watch": "npm run test -- --watch",
     "pretest": "npm run lint",
-    "lint": "eslint --color \"src/**/*.js\""
+    "lint": "eslint --color \"src/**/*.js\"",
+    "lint:fix": "prettier --write \"src/**/*.{js,ts}\"",
+    "lint:check": "prettier -l \"src/**/*.{js,ts}\""
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "graphviz": "^0.0.9"
+    "graphviz": "^0.0.9",
+    "step-machine": "^0.0.5"
   }
 }
