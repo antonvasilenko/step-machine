@@ -3,7 +3,6 @@
   "version": "0.0.5",
   "description": "",
   "main": "dist/",
-  "types": "dist/index.d.ts",
   "scripts": {
     "compile": "rm -rf dist && tsc",
     "serve": "nodemon src/index.js",

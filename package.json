@@ -4,7 +4,7 @@
   "scripts": {
     "build": "npm ci && npm run build:go",
     "build:dev": "npm i && npm run build:go",
-    "build:go": "npm run lerna:bs && npm run lerna:test:report",
+    "build:go": "lerna run compile && npm run lerna:bs && lerna run test:report",
     "lerna:test": "lerna run test",
     "lerna:test:report": "lerna run test:report",
     "lerna:bs": "lerna bootstrap --ignore-scripts",
