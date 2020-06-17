@@ -1,5 +1,7 @@
-# step-machine
 ![Node.js CI](https://github.com/antonvasilenko/step-machine/workflows/Node.js%20CI/badge.svg?branch=master)
+<p align="center"><img src="assets/img/header.png" width="80%"/></p>
+
+# step-machine
 
 A library and related toolset to build execution workflows of asynchronous/long-running steps.
 
