@@ -1,6 +1,5 @@
-/* eslint-disable no-console */
 const Manager = require('./Manager');
-const Step = require('./Step');
+const Step = require('./step/Step');
 
 describe('Manager', () => {
   it('machine with 2 simple sync step created', () => {
@@ -117,7 +116,7 @@ describe('Manager', () => {
     it('runs', async () => {
       const stepManager = new Manager(states, [step1, step2]);
       const obj = { state: 'new' };
-      await step1.entryPoints.start.fn(obj, stepManager.getStepContext(step1));
+      await step1.entryPoints.start.invoke(obj, stepManager.getStepContext(step1));
     });
     it('continues on callback', async () => {
       const stepManager = new Manager(states, [step1, step2]);

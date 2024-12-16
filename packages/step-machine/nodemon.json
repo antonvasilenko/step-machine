@@ -1,0 +1,8 @@
+{
+  "ignore": ["*.spec.js", "*.spec.ts", "logs/*"],
+  "ext": "js,ts,json",
+  "execMap": {
+    "ts": "ts-node --files",
+    "js": "ts-node --files"
+  }
+}

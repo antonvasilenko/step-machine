@@ -1,36 +1,41 @@
-// Later create StepOptions with build() and validate();
+import EntryPoint from './EntryPoint';
+import Callback from './Callback';
+import { VisitorFunc, StepOptions, Element } from './types';
 
-// eslint-disable-next-line max-classes-per-file
 const EXIT_CODES = {
   WAIT: 'wait',
 };
 
-const hasOptions = (options) => !!options;
+const hasOptions = (options: StepOptions<unknown>) => !!options;
 
-const hasEntries = (options) => options.entryPoints && Object.keys(options.entryPoints).length > 0;
-const validEntries = (options) =>
+const hasEntries = (options: StepOptions<unknown>) =>
+  options.entryPoints && Object.keys(options.entryPoints).length > 0;
+const validEntries = (options: StepOptions<unknown>) =>
   Object.entries(options.entryPoints).every(
     ([key, func]) => key && func && typeof func === 'function',
   );
 
-const hasCallbacks = (options) => options.callbacks && Object.keys(options.callbacks).length > 0;
-const validCallbacks = (options) =>
+const hasCallbacks = (options: StepOptions<unknown>) =>
+  options.callbacks && Object.keys(options.callbacks).length > 0;
+const validCallbacks = (options: StepOptions<unknown>) =>
   Object.entries(options.callbacks).every(
     ([key, func]) => key && func && typeof func === 'function',
   );
 
-const isBreakable = (options) => options.breakable === true;
+const isBreakable = (options: StepOptions<unknown>) => options.breakable === true;
 
-const hasExitCodes = (options) => options.exitCodes && options.exitCodes.length > 0;
-const validExitCodes = (options) => options.exitCodes.every((ec) => typeof ec === 'string');
-const validWaitExitCode = (options) => {
+const hasExitCodes = (options: StepOptions<unknown>) =>
+  options.exitCodes && options.exitCodes.length > 0;
+const validExitCodes = (options: StepOptions<unknown>) =>
+  options.exitCodes.every((ec) => typeof ec === 'string');
+const validWaitExitCode = (options: StepOptions<unknown>) => {
   if (isBreakable(options)) {
     return options.exitCodes.includes(EXIT_CODES.WAIT);
   }
   return !options.exitCodes.includes(EXIT_CODES.WAIT);
 };
 
-const validateName = (name) => {
+const validateName = (name: string) => {
   if (!name) {
     throw new Error('Step should always have a name');
   }
@@ -39,7 +44,8 @@ const validateName = (name) => {
   }
 };
 
-const validateOptions = (options) => {
+// eslint-disable-next-line complexity, max-lines-per-function
+const validateOptions = (options: StepOptions<unknown>) => {
   if (!hasOptions(options)) {
     throw new Error('Options are mandatory');
   }
@@ -68,49 +74,28 @@ const validateOptions = (options) => {
   }
 };
 
-const normalizeEnumValue = (key) => `${key.replace(' ', '_')}`;
-const normalizeKey = (name, key) => `${name}:${key.replace(' ', '_')}`;
+const normalizeEnumValue = (key: string) => `${key.replace(' ', '_')}`;
+const normalizeKey = (name: string, key: string) => `${name}:${key.replace(' ', '_')}`;
 
-class EntryPoint {
-  constructor(step, name, entryFn) {
-    this.step = step;
-    this.name = name;
-    this.fn = entryFn;
-  }
-
-  invoke(ctx) {
-    return this.fn(ctx);
-  }
-}
-
-class Callback {
-  constructor(step, name, callbackFn) {
-    this.step = step;
-    this.name = name;
-    this.fn = callbackFn;
-  }
-
-  invoke(ctx) {
-    return this.fn(ctx);
-  }
-}
-
-class Step {
-  constructor(name, options) {
+class Step<StateObject> implements Element {
+  public entryPoints: Readonly<Record<string, EntryPoint<StateObject>>>;
+  public callbacks: Readonly<Record<string, Callback<StateObject>>>;
+  exitCodes: string[];
+  ExitCode: Readonly<Record<string, string>>;
+  constructor(public name: string, options: StepOptions<StateObject>) {
     validateName(name);
-    this.name = name;
     validateOptions(options);
     this.entryPoints = Object.freeze(
       Object.entries(options.entryPoints).reduce((acc, [key, fn]) => {
-        acc[key] = new EntryPoint(this, key, fn);
+        acc[key] = new EntryPoint<StateObject>(this, key, fn);
         return acc;
-      }, {}),
+      }, {} as Record<string, EntryPoint<StateObject>>),
     );
     this.callbacks = Object.freeze(
       Object.entries(options.callbacks || {}).reduce((acc, [key, fn]) => {
-        acc[key] = new Callback(this, key, fn);
+        acc[key] = new Callback<StateObject>(this, key, fn);
         return acc;
-      }, {}),
+      }, {} as Record<string, Callback<StateObject>>),
     );
     this.exitCodes = options.exitCodes || [];
     this.ExitCode = Object.freeze(
@@ -118,24 +103,22 @@ class Step {
         const key = normalizeEnumValue(code);
         acc[key] = normalizeKey(this.name, code);
         return acc;
-      }, {}),
+      }, {} as Record<string, string>),
     );
   }
 
-  static getfullExitCode(step, exitCode) {
+  static getfullExitCode(step: Step<unknown>, exitCode: string): string {
     return normalizeKey(step.name, exitCode);
   }
 
-  accept(visitorFn) {
+  accept(visitorFn: VisitorFunc): void {
     visitorFn(this, 'step');
-    Object.values(this.callbacks).forEach((cb) => visitorFn(cb, 'step.callback'));
+    Object.values(this.callbacks).forEach((cb) => cb.accept(visitorFn));
     Object.values(this.entryPoints).forEach((ep) => visitorFn(ep, 'step.entrypoint'));
     this.exitCodes.forEach((ec) => visitorFn(ec, 'step.exitcode'));
   }
+
+  static EXIT_CODES = EXIT_CODES;
 }
 
-Step.EXIT_CODES = EXIT_CODES;
-Step.Callback = Callback;
-Step.EntryPoint = EntryPoint;
-
-module.exports = Step;
+export = Step;
